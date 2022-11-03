@@ -11,7 +11,7 @@ class Player {
         // Player Velocity
         this.velocity = {
             x: 0,
-            y: 0
+            y: 0,
         }
 
         // Player Orientation
@@ -51,7 +51,6 @@ class Player {
             -player.position.x - player.width / 2,
             -player.position.y - player.height / 2
         )
-        c.rotate(this.rotation)
 
         c.drawImage(
             this.image, 
@@ -68,12 +67,53 @@ class Player {
         if(this.image) {
             this.draw()
             this.position.x += this.velocity.x
+            this.position.y += this.velocity.y
         }
     }
         
 }
 
+// Create Projectile constructor
+class Projectile {
+    constructor({position, velocity}) {
+        this.position = position
+        this.velocity = velocity
+
+        this.radius = 3
+    }
+
+    draw() {
+        c.beginPath()
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+        c.fillStyle = 'red'
+        c.fill()
+        c.closePath()
+    }
+
+    update() {
+        this.draw()
+        this.position.x += this.velocity.x
+        this.position.y += this.velocity.y
+    }
+}
+
+
+// Create Player 
 const player = new Player()
+
+// Create Projectiles
+const projectiles = [new Projectile({
+    position: {
+        x: 300,
+        y: 300
+    },
+    velocity: {
+        x: 0,
+        y: 0
+    }
+})]
+
+// Create Movement Keys
 const keys = {
     h: {
         pressed: false
@@ -97,7 +137,14 @@ function animate() {
     requestAnimationFrame(animate)
     c.fillStyle = 'black'
     c.fillRect(0, 0, canvas.width, canvas.height)
+
+    // animate player
     player.update()
+
+    // animate projectiles
+    projectiles.forEach((projectile) => {
+        projectile.update()
+    })
 
     // Animate horizontal movement
     if (keys.h.pressed && player.position.x >= 0) {
@@ -112,10 +159,10 @@ function animate() {
     }
 
     // Animate vertical movement
-    if (keys.j.pressed) {
-        player.velocity.y = -5
-    } else if (keys.k.pressed) {
-        player.velocity.y = 5
+    if (keys.j.pressed && player.position.y + player.height <= canvas.height) {
+        player.velocity.y += 0.5
+    } else if (keys.k.pressed && player.position.y + player.height >= canvas.height / 2) {
+        player.velocity.y += -0.5 
     } else {
         player.velocity.y = 0
     }
