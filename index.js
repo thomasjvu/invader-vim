@@ -97,12 +97,64 @@ class Projectile {
     }
 }
 
+class Invader {
+    constructor() {
 
-// Create Player 
+        // Invader Velocity
+        this.velocity = {
+            x: 0,
+            y: 0,
+        }
+
+        // Invader Orientation
+        this.rotation = 0
+
+        // Load Invader Image
+        const image = new Image()
+        image.src = './img/invader.png'
+        image.onload = () => {
+            const scale = 0.05
+            this.image =  image
+            this.width = image.width * scale
+            this.height = image.height * scale
+            // Invader Starting Position
+            this.position = {
+                x: canvas.width / 2 - this.width / 2,
+                y: canvas.height / 2
+        }
+
+        }
+
+    }
+
+
+    draw() {
+        c.drawImage(
+            this.image, 
+            this.position.x, 
+            this.position.y,
+            this.width,
+            this.height
+        )
+    }
+
+    update() {
+        if(this.image) {
+            this.draw()
+            this.position.x += this.velocity.x
+            this.position.y += this.velocity.y
+        }
+    }
+}
+
+// Create player 
 const player = new Player()
 
-// create projectiles
+// Create projectiles
 const projectiles = []
+
+// Create invader
+const invader = new Invader()
 
 // Create Movement Keys
 const keys = {
@@ -131,6 +183,10 @@ function animate() {
 
     // animate player
     player.update()
+
+    // animate invader
+    invader.update()
+
 
     // animate projectiles
     projectiles.forEach((projectile, index) => {
