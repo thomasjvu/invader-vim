@@ -101,17 +101,8 @@ class Projectile {
 // Create Player 
 const player = new Player()
 
-// Create Projectiles
-const projectiles = [new Projectile({
-    position: {
-        x: 300,
-        y: 300
-    },
-    velocity: {
-        x: 0,
-        y: 0
-    }
-})]
+// create projectiles
+const projectiles = []
 
 // Create Movement Keys
 const keys = {
@@ -142,9 +133,17 @@ function animate() {
     player.update()
 
     // animate projectiles
-    projectiles.forEach((projectile) => {
-        projectile.update()
+    projectiles.forEach((projectile, index) => {
+        if (projectile.position.y + projectile.radius <= 0) {
+            setTimeout(() => {
+                projectiles.splice(index, 1)
+            }, 0)
+        } else {
+            projectile.update()
+        }
     })
+
+    // disappear projectiles
 
     // Animate horizontal movement
     if (keys.h.pressed && player.position.x >= 0) {
@@ -159,9 +158,9 @@ function animate() {
     }
 
     // Animate vertical movement
-    if (keys.j.pressed && player.position.y + player.height <= canvas.height) {
+    if (keys.j.pressed && player.position.y + player.height + 25 <= canvas.height) {
         player.velocity.y += 0.5
-    } else if (keys.k.pressed && player.position.y + player.height >= canvas.height / 2) {
+    } else if (keys.k.pressed && player.position.y + player.height >= canvas.height - 100) {
         player.velocity.y += -0.5 
     } else {
         player.velocity.y = 0
@@ -193,7 +192,20 @@ addEventListener('keydown', ({key}) => {
             break
         case ' ':
             console.log('space')
-            keys.space.pressed = true
+            projectiles.push(
+            new Projectile({
+                position: {
+                    x: player.position.x + player.width / 2,
+                    y: player.position.y 
+                },
+                velocity: {
+                    x: 0,
+                    y: -10
+                }
+            })
+            )
+            // keys.space.pressed = true
+            // console.log(projectiles)
             break
     }
 })
