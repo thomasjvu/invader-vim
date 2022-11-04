@@ -197,7 +197,7 @@ const player = new Player()
 const projectiles = []
 
 // Create grids
-const grids = [new Grid()]
+const grids = []
 
 // Create Movement Keys
 const keys = {
@@ -217,6 +217,9 @@ const keys = {
         pressed: false
     }
 }
+
+let frames = 0
+let randomInterval = Math.floor((Math.random() * 500) + 500)
 
 // Create animation loop
 function animate() {
@@ -267,6 +270,15 @@ function animate() {
     } else {
         player.velocity.y = 0
     }
+
+    // spawning enemies
+    if (frames % randomInterval === 0) {
+        grids.push(new Grid())
+        frames = 0
+        randomInterval = Math.floor((Math.random() * 500) + 500)
+    }
+
+    frames++
 }
 
 
