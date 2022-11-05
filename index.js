@@ -16,6 +16,7 @@ class Player {
 
         // Player Orientation
         this.rotation = 0
+        this.opacity = 1
 
         // Load Player Image
         const image = new Image()
@@ -41,6 +42,7 @@ class Player {
         // c.fillRect(this.position.x, this.position.y, this.width, this.height)
             
         c.save()
+        c.globalAlpha = this.opacity
         c.translate(
             player.position.x + player.width / 2, 
             player.position.y + player.height / 2
@@ -294,6 +296,10 @@ const keys = {
 
 let frames = 0
 let randomInterval = Math.floor((Math.random() * 500) + 500)
+let game = {
+    over: false,
+    active: true
+}
 
 
 // Create background stars
@@ -333,6 +339,7 @@ function createParticles({object, color, fades}) {
 
 // Create animation loop
 function animate() {
+    if (!game.active) return
     requestAnimationFrame(animate)
     c.fillStyle = 'black'
     c.fillRect(0, 0, canvas.width, canvas.height)
@@ -369,7 +376,13 @@ function animate() {
             invaderProjectile.position.x <= player.position.x + player.width) {
             setTimeout(() => {
                 invaderProjectiles.splice(index, 1)
+                player.opacity = 0
+                game.over = true
             }, 0)
+            // End the game
+            setTimeout(() => {
+                game.active = true
+            }, 2000)
             console.log('you lose!')
             createParticles({
                 object: player,
@@ -481,6 +494,7 @@ animate()
 
 // Add Movement via Vim Bindings
 addEventListener('keydown', ({key}) => {
+    if (game.over) return
     switch (key) {
         case 'h':
             console.log('left')
