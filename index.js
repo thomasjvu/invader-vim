@@ -435,6 +435,19 @@ function animate() {
                         if (invaderFound && projectileFound) {
                             score += 100
                             scoreVal.innerHTML = score
+
+                            // create dynamic score labels
+                            const scoreLabel = document.createElement('label')
+                            document.querySelector('#parentDiv').appendChild(scoreLabel)
+                            scoreLabel.innerHTML = 100
+                            scoreLabel.style.position = 'absolute'
+                            scoreLabel.style.color = 'white'
+                            scoreLabel.style.top = invader.position.y + 'px'
+                            scoreLabel.style.left = invader.position.x + 'px' 
+                            scoreLabel.style.fontFamily = 'monospace'
+                            scoreLabel.style.userSelect = 'none'
+
+                            // create particle effects
                             createParticles({
                                 object: invader,
                                 fades: true
