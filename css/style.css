@@ -11,6 +11,7 @@ body {
     color: white;
     margin: 0;
     height: 100vh;
+    font-family: monospace;
 }
 
 h1 {
@@ -32,7 +33,6 @@ p {
     position: absolute;
     z-index: 10;
     color: white;
-    font-family: monospace;
     left: 15px;
     top: 15px;
     margin: 0;

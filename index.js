@@ -444,8 +444,18 @@ function animate() {
                             scoreLabel.style.color = 'white'
                             scoreLabel.style.top = invader.position.y + 'px'
                             scoreLabel.style.left = invader.position.x + 'px' 
-                            scoreLabel.style.fontFamily = 'monospace'
+                            // scoreLabel.style.fontFamily = 'monospace'
                             scoreLabel.style.userSelect = 'none'
+                            
+                            // add dynamic score label animation
+                            gsap.to(scoreLabel, {
+                                opacity: 0,
+                                y: -20,
+                                duration: 0.75,
+                                onComplete: () => {
+                                    document.querySelector('#parentDiv').removeChild(scoreLabel)
+                                }
+                            })
 
                             // create particle effects
                             createParticles({
