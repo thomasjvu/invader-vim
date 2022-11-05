@@ -1,9 +1,10 @@
+const scoreEl = document.querySelector('#scoreVal')
 // selects canvas and sets it equal to const canvas
 const canvas = document.querySelector('canvas')
 
 const c = canvas.getContext('2d')
-canvas.width = innerWidth
-canvas.height = innerHeight
+canvas.width = 1024
+canvas.height = 576
 
 class Player {
     constructor() {
@@ -300,6 +301,7 @@ let game = {
     over: false,
     active: true
 }
+let score = 0 
 
 
 // Create background stars
@@ -381,7 +383,7 @@ function animate() {
             }, 0)
             // End the game
             setTimeout(() => {
-                game.active = true
+                game.active = false
             }, 2000)
             console.log('you lose!')
             createParticles({
@@ -431,6 +433,8 @@ function animate() {
                         
                         // remove invader and projectile on hit
                         if (invaderFound && projectileFound) {
+                            score += 100
+                            scoreVal.innerHTML = score
                             createParticles({
                                 object: invader,
                                 fades: true

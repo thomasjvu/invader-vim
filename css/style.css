@@ -3,15 +3,41 @@
 }
 
 body {
-    background: black;
-    color: white;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
-body > section {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    background: black;
+    color: white;
+    margin: 0;
+    height: 100vh;
+}
+
+h1 {
+    color: green;
+    font-family: 'Consolate Elf', monospace;
+}
+
+/* section { */
+/*     display: flex; */
+/*     align-items: center; */
+/*     justify-content: center; */
+/* } */
+
+main {
+    position: relative;
+}
+
+p {
+    position: absolute;
+    z-index: 10;
+    color: white;
+    font-family: monospace;
+    left: 15px;
+    top: 15px;
+    margin: 0;
+}
+
+span {
+    color: red;
 }
