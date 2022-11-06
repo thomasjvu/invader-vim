@@ -260,6 +260,7 @@ class InvaderProjectile {
 
 // Create Bomb constructor
 class Bomb {
+    static radius = 30;
     constructor({ position, velocity }) {
         this.position = position;
         this.velocity = velocity;
@@ -279,7 +280,23 @@ class Bomb {
         this.draw();
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
+
+        if (
+            this.position.x + this.radius + this.velocity.x >= canvas.width ||
+            this.position.x - this.radius + this.velocity.x <= 0
+        ) {
+            this.velocity.x = -this.velocity.x;
+        } else if (
+            this.position.y + this.radius + this.velocity.y >= canvas.height ||
+            this.position.y - this.radius + this.velocity.y <= 0
+        ) {
+            this.velocity.y = -this.velocity.y;
+        }
     }
+}
+
+function randomBetween(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
 // Create player
@@ -298,25 +315,26 @@ const grids = [];
 const invaderProjectiles = [];
 
 // Create bombs
+
 const bombs = [
     new Bomb({
         position: {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
+            x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+            y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
         },
         velocity: {
-            x: Math.random() - 0.5,
-            y: Math.random() - 0.5,
+            x: (Math.random() - 0.5) * 6,
+            y: (Math.random() - 0.5) * 6,
         },
     }),
     new Bomb({
         position: {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
+            x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+            y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
         },
         velocity: {
-            x: Math.random() - 0.5,
-            y: Math.random() - 0.5,
+            x: (Math.random() - 0.5) * 6,
+            y: (Math.random() - 0.5) * 6,
         },
     }),
 ];
@@ -370,7 +388,6 @@ for (let i = 0; i < 100; i++) {
 function createParticles({ object, color, fades }) {
     for (let i = 0; i < 15; i++) {
         particles.push(
-
             new Particle({
                 position: {
                     x: object.position.x + object.width / 2,
@@ -396,9 +413,9 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height);
 
     // animate bombs
-    for(let i = bombs.length - 1; i >= 0; i--) {
-        const bomb = bombs[i]
-        bomb.update()
+    for (let i = bombs.length - 1; i >= 0; i--) {
+        const bomb = bombs[i];
+        bomb.update();
     }
 
     // animate player
