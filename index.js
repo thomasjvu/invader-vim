@@ -266,14 +266,19 @@ class Bomb {
         this.velocity = velocity;
         this.radius = 30;
         this.color = "red";
+        this.opacity = 1;
+        this.active = false;
     }
 
     draw() {
+        c.save();
+        c.globalAlpha = this.opacity;
         c.beginPath();
         c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         c.closePath();
         c.fillStyle = this.color;
         c.fill();
+        c.restore();
     }
 
     update() {
@@ -292,6 +297,21 @@ class Bomb {
         ) {
             this.velocity.y = -this.velocity.y;
         }
+    }
+
+    explode() {
+        this.active = true;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
+        gsap.to(this, {
+            radius: 75,
+            color: "white",
+        });
+        gsap.to(this, {
+            delay: 0.1,
+            opacity: 0,
+            duration: 0.15,
+        });
     }
 }
 
@@ -485,9 +505,10 @@ function animate() {
                     projectile.position.x - bomb.position.x,
                     projectile.position.y - bomb.position.y
                 ) <
-                projectile.radius + bomb.radius
+                projectile.radius + bomb.radius && !bomb.active
             ) {
                 projectiles.splice(i, 1);
+                bomb.explode();
             }
         }
 
