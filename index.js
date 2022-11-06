@@ -425,6 +425,30 @@ function createParticles({ object, color, fades }) {
     }
 }
 
+// Create dynamic score labels
+
+function createScoreLabel({ score = 100, object }) {
+    const scoreLabel = document.createElement("label");
+    document.querySelector("#parentDiv").appendChild(scoreLabel);
+    scoreLabel.innerHTML = 100;
+    scoreLabel.style.position = "absolute";
+    scoreLabel.style.color = "white";
+    scoreLabel.style.top = object.position.y + "px";
+    scoreLabel.style.left = object.position.x + "px";
+    // scoreLabel.style.fontFamily = 'monospace'
+    scoreLabel.style.userSelect = "none";
+
+    // add dynamic score label animation
+    gsap.to(scoreLabel, {
+        opacity: 0,
+        y: -20,
+        duration: 0.75,
+        onComplete: () => {
+            document.querySelector("#parentDiv").removeChild(scoreLabel);
+        },
+    });
+}
+
 // Create animation loop
 function animate() {
     if (!game.active) return;
@@ -435,6 +459,10 @@ function animate() {
     // animate bombs
     for (let i = bombs.length - 1; i >= 0; i--) {
         const bomb = bombs[i];
+
+        if (bomb.opacity <= 0) {
+            bombs.splice(i, 1);
+        }
         bomb.update();
     }
 
@@ -505,7 +533,8 @@ function animate() {
                     projectile.position.x - bomb.position.x,
                     projectile.position.y - bomb.position.y
                 ) <
-                projectile.radius + bomb.radius && !bomb.active
+                    projectile.radius + bomb.radius &&
+                !bomb.active
             ) {
                 projectiles.splice(i, 1);
                 bomb.explode();
@@ -529,8 +558,39 @@ function animate() {
             ].shoot(invaderProjectiles);
         }
 
-        grid.invaders.forEach((invader, i) => {
+        // remove invaders on bomb explosion
+        for (let i = grid.invaders.length - 1; i >= 0; i--) {
+            const invader = grid.invaders[i];
             invader.update({ velocity: grid.velocity });
+
+            for (let j = bombs.length - 1; j >= 0; j--) {
+                const bomb = bombs[j];
+
+                const invaderRadius = 15;
+
+                // if bomb touches invader, remove invader
+                if (
+                    Math.hypot(
+                        invader.position.x - bomb.position.x,
+                        invader.position.y - bomb.position.y
+                    ) <
+                        invaderRadius + bomb.radius &&
+                    bomb.active
+                ) {
+                    score += 50
+                    scoreEl.innerHTML = score
+                    grid.invaders.splice(i, 1);
+                    createScoreLabel({
+                        object: invader,
+                        score: 50
+                    });
+                    // create particle effects
+                    createParticles({
+                        object: invader,
+                        fades: true,
+                    });
+                }
+            }
 
             // projectiles hit enemy
             projectiles.forEach((projectile, j) => {
@@ -559,28 +619,8 @@ function animate() {
                             scoreVal.innerHTML = score;
 
                             // create dynamic score labels
-                            const scoreLabel = document.createElement("label");
-                            document
-                                .querySelector("#parentDiv")
-                                .appendChild(scoreLabel);
-                            scoreLabel.innerHTML = 100;
-                            scoreLabel.style.position = "absolute";
-                            scoreLabel.style.color = "white";
-                            scoreLabel.style.top = invader.position.y + "px";
-                            scoreLabel.style.left = invader.position.x + "px";
-                            // scoreLabel.style.fontFamily = 'monospace'
-                            scoreLabel.style.userSelect = "none";
-
-                            // add dynamic score label animation
-                            gsap.to(scoreLabel, {
-                                opacity: 0,
-                                y: -20,
-                                duration: 0.75,
-                                onComplete: () => {
-                                    document
-                                        .querySelector("#parentDiv")
-                                        .removeChild(scoreLabel);
-                                },
+                            createScoreLabel({
+                                object: invader,
                             });
 
                             // create particle effects
@@ -609,7 +649,7 @@ function animate() {
                     }, 0);
                 }
             });
-        });
+        }
     });
 
     // Animate horizontal movement
