@@ -436,7 +436,6 @@ function animate() {
         particle.update();
     });
 
-    console.log(particles);
     invaderProjectiles.forEach((invaderProjectile, index) => {
         if (
             invaderProjectile.position.y + invaderProjectile.height >=
@@ -473,18 +472,36 @@ function animate() {
         }
     });
 
-    // animate projectiles
-    projectiles.forEach((projectile, index) => {
+    // Remove projectiels
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const projectile = projectiles[i];
+
+        for (let j = bombs.length - 1; j >= 0; j--) {
+            const bomb = bombs[j];
+
+            // if projectile touches bomb, remove projectile
+            if (
+                Math.hypot(
+                    projectile.position.x - bomb.position.x,
+                    projectile.position.y - bomb.position.y
+                ) <
+                projectile.radius + bomb.radius
+            ) {
+                projectile.radius + bomb.radius;
+            }
+            {
+                projectiles.splice(i, 1);
+            }
+        }
+
         if (projectile.position.y + projectile.radius <= 0) {
-            setTimeout(() => {
-                // remove projectiles
-                projectiles.splice(index, 1);
-            }, 0);
+            projectiles.splice(i, 1);
         } else {
             projectile.update();
         }
-    });
+    }
 
+    // animate projectiles
     grids.forEach((grid, gridIndex) => {
         grid.update();
         // spawn projectiles
