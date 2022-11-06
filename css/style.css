@@ -14,9 +14,19 @@ body {
     font-family: monospace;
 }
 
+canvas {
+    border: 1px solid green;
+    border-radius: 5px;
+}
+
 h1 {
-    color: green;
-    font-family: 'Consolate Elf', monospace;
+    display: none;
+    visibility: hidden;
+}
+
+#title {
+    max-width: 50%;
+    margin-bottom: 50px;
 }
 
 /* section { */
