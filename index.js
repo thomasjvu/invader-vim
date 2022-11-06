@@ -264,10 +264,14 @@ class Bomb {
     constructor({ position, velocity }) {
         this.position = position;
         this.velocity = velocity;
-        this.radius = 30;
+        this.radius = 0;
         this.color = "red";
         this.opacity = 1;
         this.active = false;
+
+        gsap.to(this, {
+            radius: 30
+        })
     }
 
     draw() {
@@ -304,7 +308,7 @@ class Bomb {
         this.velocity.x = 0;
         this.velocity.y = 0;
         gsap.to(this, {
-            radius: 75,
+            radius: 100,
             color: "white",
         });
         gsap.to(this, {
@@ -335,29 +339,7 @@ const grids = [];
 const invaderProjectiles = [];
 
 // Create bombs
-
-const bombs = [
-    new Bomb({
-        position: {
-            x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
-            y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
-        },
-        velocity: {
-            x: (Math.random() - 0.5) * 6,
-            y: (Math.random() - 0.5) * 6,
-        },
-    }),
-    new Bomb({
-        position: {
-            x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
-            y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
-        },
-        velocity: {
-            x: (Math.random() - 0.5) * 6,
-            y: (Math.random() - 0.5) * 6,
-        },
-    }),
-];
+const bombs = [];
 
 // Create Movement Keys
 const keys = {
@@ -455,6 +437,21 @@ function animate() {
     requestAnimationFrame(animate);
     c.fillStyle = "black";
     c.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (frames % 200 === 0 && bombs.length < 2) {
+        bombs.push(
+            new Bomb({
+                position: {
+                    x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+                    y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
+                },
+                velocity: {
+                    x: (Math.random() - 0.5) * 6,
+                    y: (Math.random() - 0.5) * 6,
+                },
+            })
+        );
+    }
 
     // animate bombs
     for (let i = bombs.length - 1; i >= 0; i--) {
@@ -577,12 +574,12 @@ function animate() {
                         invaderRadius + bomb.radius &&
                     bomb.active
                 ) {
-                    score += 50
-                    scoreEl.innerHTML = score
+                    score += 50;
+                    scoreEl.innerHTML = score;
                     grid.invaders.splice(i, 1);
                     createScoreLabel({
                         object: invader,
-                        score: 50
+                        score: 50,
                     });
                     // create particle effects
                     createParticles({
