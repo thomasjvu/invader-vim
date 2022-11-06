@@ -487,9 +487,6 @@ function animate() {
                 ) <
                 projectile.radius + bomb.radius
             ) {
-                projectile.radius + bomb.radius;
-            }
-            {
                 projectiles.splice(i, 1);
             }
         }
