@@ -270,8 +270,8 @@ class Bomb {
         this.active = false;
 
         gsap.to(this, {
-            radius: 30
-        })
+            radius: 30,
+        });
     }
 
     draw() {
@@ -321,25 +321,25 @@ class Bomb {
 
 // Create Powerup constructor
 class PowerUp {
-    constructor({position, velocity}) {
-        this.position = position
-        this.velocity = velocity
+    constructor({ position, velocity }) {
+        this.position = position;
+        this.velocity = velocity;
 
-        this.radius = 10
+        this.radius = 10;
     }
 
     draw() {
-        c.beginPath()
-        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
-        c.fillStyle = 'yellow'
-        c.fill()
-        c.closePath()
+        c.beginPath();
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+        c.fillStyle = "yellow";
+        c.fill();
+        c.closePath();
     }
 
     update() {
-        this.draw()
-        this.position.x += this.velocity.x
-        this.position.y += this.velocity.y
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
     }
 }
 
@@ -364,6 +364,20 @@ const invaderProjectiles = [];
 
 // Create bombs
 const bombs = [];
+
+// Create PowerUps
+const powerUps = [
+    new PowerUp({
+        position: {
+            x: 0,
+            y: 300,
+        },
+        velocity: {
+            x: 5,
+            y: 0,
+        },
+    }),
+];
 
 // Create Movement Keys
 const keys = {
@@ -461,6 +475,10 @@ function animate() {
     requestAnimationFrame(animate);
     c.fillStyle = "black";
     c.fillRect(0, 0, canvas.width, canvas.height);
+
+    powerUps.forEach(powerUp => {
+        powerUp.update()
+    })
 
     if (frames % 200 === 0 && bombs.length < 2) {
         bombs.push(
@@ -567,7 +585,27 @@ function animate() {
         } else {
             projectile.update();
         }
+
+        // Remove powerUps
+        for (let k = powerUps.length - 1; k >= 0; k--) {
+            const powerUp = powerUps[k];
+
+                // if projectile touches bomb, remove projectile
+                if (
+                    Math.hypot(
+                        projectile.position.x - powerUp.position.x,
+                        projectile.position.y - powerUp.position.y
+                    ) <
+                        projectile.radius + powerUp.radius
+                ) {
+                    projectiles.splice(k, 1);
+                    powerUps.splice(k, 1)
+                }
     }
+
+
+    }
+
 
     // animate projectiles
     grids.forEach((grid, gridIndex) => {
