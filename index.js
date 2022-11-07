@@ -1,4 +1,4 @@
-const scoreEl = document.querySelector('#scoreEl')
+const scoreVal = document.querySelector('#scoreVal')
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 
@@ -27,6 +27,9 @@ class Player {
         y: canvas.height - this.height - 20
       }
     }
+
+      this.particles = []
+      this.frames = 0
   }
 
   draw() {
@@ -62,6 +65,23 @@ class Player {
       this.position.x += this.velocity.x
       this.position.y += this.velocity.y
     }
+
+      this.frames++
+      if (this.frames % 2 === 0) {
+          this.particles.push(new Particle({
+              position: {
+                  x: this.position.x + this.width / 2,
+                  y: this.position.y + this.height,
+              },
+              velocity: {
+                  x: (Math.random() - 0.5) * 1.25,
+                  y: 1.5,
+              },
+              radius: Math.random() * 2,
+              color: 'white',
+              fades: true,
+          }))
+      }
   }
 }
 
@@ -466,7 +486,7 @@ function animate() {
   }
 
   // spawn powerups
-  if (frames % 1000 === 0) {
+  if (frames % 750 === 0) {
     powerUps.push(
       new PowerUp({
         position: {
@@ -506,6 +526,12 @@ function animate() {
   }
 
   player.update()
+
+  for (let i = player.particles.length - 1; i >= 0; i--) {
+      const particle = player.particles[i]
+      particle.update()
+  }
+
   particles.forEach((particle, i) => {
     if (particle.position.y - particle.radius >= canvas.height) {
       particle.position.x = Math.random() * canvas.width
@@ -582,7 +608,7 @@ function animate() {
         setTimeout(() => {
           player.powerUp = null
           console.log('powerup ended')
-        }, 5000)
+        }, 2000)
       }
     }
 
@@ -622,7 +648,7 @@ function animate() {
           bomb.active
         ) {
           score += 50
-          scoreEl.innerHTML = score
+          scoreVal.innerHTML = score
 
           grid.invaders.splice(i, 1)
           createScoreLabel({
