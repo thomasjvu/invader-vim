@@ -73,7 +73,7 @@ class Player {
 
 // Create Projectile constructor
 class Projectile {
-    constructor({ position, velocity, color = 'red'}) {
+    constructor({ position, velocity, color = "red" }) {
         this.position = position;
         this.velocity = velocity;
 
@@ -231,7 +231,7 @@ class Grid {
             this.position.x + this.width >= canvas.width ||
             this.position.x <= 0
         ) {
-            this.velocity.x = -this.velocity.x;
+            this.velocity.x = -this.velocity.x * 1.15;
             this.velocity.y = 30;
         }
     }
@@ -459,6 +459,7 @@ function createScoreLabel({ score = 100, object }) {
     });
 }
 
+let spawnInterval = 500;
 // Create animation loop
 function animate() {
     if (!game.active) return;
@@ -757,11 +758,15 @@ function animate() {
         player.velocity.y = 0;
     }
 
-    // spawning enemies
+    // spawn enemies
     if (frames % randomInterval === 0) {
+        console.log(spawnInterval);
+        console.log(randomInterval);
+        spawnInterval = spawnInterval < 0 ? 100 : spawnInterval;
         grids.push(new Grid());
         frames = 0;
-        randomInterval = Math.floor(Math.random() * 500 + 500);
+        randomInterval = Math.floor(Math.random() * 500 + spawnInterval);
+        spawnInterval -= 100;
     }
 
     if (
