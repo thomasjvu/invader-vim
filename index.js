@@ -1,373 +1,343 @@
-const scoreVal = document.querySelector("#scoreVal");
-// selects canvas and sets it equal to const canvas
-const canvas = document.querySelector("canvas");
+const scoreEl = document.querySelector('#scoreEl')
+const canvas = document.querySelector('canvas')
+const c = canvas.getContext('2d')
 
-const c = canvas.getContext("2d");
-canvas.width = 1024;
-canvas.height = 576;
+canvas.width = 1024
+canvas.height = 576
 
 class Player {
-    constructor() {
-        // Player Velocity
-        this.velocity = {
-            x: 0,
-            y: 0,
-        };
-
-        // Player Orientation
-        this.rotation = 0;
-        this.opacity = 1;
-
-        // Load Player Image
-        const image = new Image();
-        image.src = "./img/shipFullHealth.png";
-        image.onload = () => {
-            const scale = 1;
-            this.image = image;
-            this.width = image.width * scale;
-            this.height = image.height * scale;
-            // Player Starting Position
-            this.position = {
-                x: canvas.width / 2 - this.width / 2,
-                y: canvas.height - this.height - 20,
-            };
-        };
+  constructor() {
+    this.velocity = {
+      x: 0,
+      y: 0
     }
 
-    draw() {
-        // c.fillStyle = 'red'
-        // c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    this.rotation = 0
+    this.opacity = 1
 
-        c.save();
-        c.globalAlpha = this.opacity;
-        c.translate(
-            player.position.x + player.width / 2,
-            player.position.y + player.height / 2
-        );
-        c.rotate(this.rotation);
-
-        c.translate(
-            -player.position.x - player.width / 2,
-            -player.position.y - player.height / 2
-        );
-
-        c.drawImage(
-            this.image,
-            this.position.x,
-            this.position.y,
-            this.width,
-            this.height
-        );
-
-        c.restore();
+    const image = new Image()
+    image.src = './img/shipFullHealth.png'
+    image.onload = () => {
+      const scale = 1
+      this.image = image
+      this.width = image.width * scale
+      this.height = image.height * scale
+      this.position = {
+        x: canvas.width / 2 - this.width / 2,
+        y: canvas.height - this.height - 20
+      }
     }
+  }
 
-    update() {
-        if (this.image) {
-            this.draw();
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
-        }
+  draw() {
+    // c.fillStyle = 'red'
+    // c.fillRect(this.position.x, this.position.y, this.width, this.height)
+
+    c.save()
+    c.globalAlpha = this.opacity
+    c.translate(
+      player.position.x + player.width / 2,
+      player.position.y + player.height / 2
+    )
+    c.rotate(this.rotation)
+
+    c.translate(
+      -player.position.x - player.width / 2,
+      -player.position.y - player.height / 2
+    )
+
+    c.drawImage(
+      this.image,
+      this.position.x,
+      this.position.y,
+      this.width,
+      this.height
+    )
+    c.restore()
+  }
+
+  update() {
+    if (this.image) {
+      this.draw()
+      this.position.x += this.velocity.x
+      this.position.y += this.velocity.y
     }
+  }
 }
 
-// Create Projectile constructor
 class Projectile {
-    constructor({ position, velocity, color = "red" }) {
-        this.position = position;
-        this.velocity = velocity;
+  constructor({ position, velocity, color = 'green' }) {
+    this.position = position
+    this.velocity = velocity
 
-        this.color = color;
-        this.radius = 3;
-    }
+    this.radius = 4
+    this.color = color
+  }
 
-    draw() {
-        c.beginPath();
-        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        c.fillstyle = this.color;
-        c.fill();
-        c.closePath();
-    }
+  draw() {
+    c.beginPath()
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+    c.fillStyle = this.color
+    c.fill()
+    c.closePath()
+  }
 
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-    }
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
 }
 
-// Create Particle (Projectile Explosion) constructor
 class Particle {
-    constructor({ position, velocity, radius, color, fades }) {
-        this.position = position;
-        this.velocity = velocity;
+  constructor({ position, velocity, radius, color, fades }) {
+    this.position = position
+    this.velocity = velocity
 
-        this.radius = radius;
+    this.radius = radius
+    this.color = color
+    this.opacity = 1
+    this.fades = fades
+  }
 
-        this.color = color;
-        this.opacity = 1;
-        this.fades = fades;
-    }
+  draw() {
+    c.save()
+    c.globalAlpha = this.opacity
+    c.beginPath()
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+    c.fillStyle = this.color
+    c.fill()
+    c.closePath()
+    c.restore()
+  }
 
-    draw() {
-        c.save();
-        c.globalAlpha = this.opacity;
-        c.beginPath();
-        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        c.fillStyle = this.color;
-        c.fill();
-        c.closePath();
-        c.restore();
-    }
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
 
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-        if (this.fades) this.opacity -= 0.01;
-    }
+    if (this.fades) this.opacity -= 0.01
+  }
+}
+
+class InvaderProjectile {
+  constructor({ position, velocity }) {
+    this.position = position
+    this.velocity = velocity
+
+    this.width = 3
+    this.height = 10
+  }
+
+  draw() {
+    c.fillStyle = 'purple'
+    c.fillRect(this.position.x, this.position.y, this.width, this.height)
+  }
+
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
 }
 
 class Invader {
-    constructor({ position }) {
-        // Invader Velocity
-        this.velocity = {
-            x: 0,
-            y: 0,
-        };
-
-        // Invader Orientation
-        this.rotation = 0;
-
-        // Load Invader Image
-        const image = new Image();
-        image.src = "./img/invader.png";
-        image.onload = () => {
-            const scale = 0.05;
-            this.image = image;
-            this.width = image.width * scale;
-            this.height = image.height * scale;
-            // Invader Starting Position
-            this.position = {
-                x: position.x,
-                y: position.y,
-            };
-        };
+  constructor({ position }) {
+    this.velocity = {
+      x: 0,
+      y: 0
     }
 
-    draw() {
-        c.drawImage(
-            this.image,
-            this.position.x,
-            this.position.y,
-            this.width,
-            this.height
-        );
+    const image = new Image()
+    image.src = './img/invader.png'
+    image.onload = () => {
+      const scale = .05
+      this.image = image
+      this.width = image.width * scale
+      this.height = image.height * scale
+      this.position = {
+        x: position.x,
+        y: position.y
+      }
     }
+  }
 
-    update({ velocity }) {
-        if (this.image) {
-            this.draw();
-            this.position.x += velocity.x;
-            this.position.y += velocity.y;
+  draw() {
+    // c.fillStyle = 'red'
+    // c.fillRect(this.position.x, this.position.y, this.width, this.height)
+
+    c.drawImage(
+      this.image,
+      this.position.x,
+      this.position.y,
+      this.width,
+      this.height
+    )
+  }
+
+  update({ velocity }) {
+    if (this.image) {
+      this.draw()
+      this.position.x += velocity.x
+      this.position.y += velocity.y
+    }
+  }
+
+  shoot(invaderProjectiles) {
+    invaderProjectiles.push(
+      new InvaderProjectile({
+        position: {
+          x: this.position.x + this.width / 2,
+          y: this.position.y + this.height
+        },
+        velocity: {
+          x: 0,
+          y: 7.5
         }
-    }
-
-    shoot(invaderProjectiles) {
-        invaderProjectiles.push(
-            new InvaderProjectile({
-                position: {
-                    x: this.position.x + this.width / 2,
-                    y: this.position.y + this.height,
-                },
-                velocity: {
-                    x: 0,
-                    y: 5,
-                },
-            })
-        );
-    }
+      })
+    )
+  }
 }
 
-// Create grid constructor
 class Grid {
-    constructor() {
-        (this.position = {
-            x: 0,
-            y: 0,
-        }),
-            (this.velocity = {
-                x: 3,
-                y: 0,
-            });
-        // Create Invader
-        this.invaders = [];
+  constructor() {
+    this.position = {
+      x: 0,
+      y: 0
+    }
 
-        const cols = Math.floor(Math.random() * 10 + 5);
-        const rows = Math.floor(Math.random() * 5 + 2);
+    this.velocity = {
+      x: 3,
+      y: 0
+    }
 
-        this.width = cols * 30;
+    this.invaders = []
 
-        for (let x = 0; x < cols; x++) {
-            for (let y = 0; y < rows; y++) {
-                this.invaders.push(
-                    new Invader({
-                        position: {
-                            x: x * 30,
-                            y: y * 30,
-                        },
-                    })
-                );
+    const columns = Math.floor(Math.random() * 10 + 5)
+    const rows = Math.floor(Math.random() * 5 + 2)
+
+    this.width = columns * 30
+
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
+        this.invaders.push(
+          new Invader({
+            position: {
+              x: x * 30,
+              y: y * 30
             }
-        }
+          })
+        )
+      }
     }
-    update() {
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
+  }
 
-        this.velocity.y = 0;
+  update() {
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
 
-        if (
-            this.position.x + this.width >= canvas.width ||
-            this.position.x <= 0
-        ) {
-            this.velocity.x = -this.velocity.x * 1.15;
-            this.velocity.y = 30;
-        }
+    this.velocity.y = 0
+
+    if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+      this.velocity.x = -this.velocity.x * 1.15
+      this.velocity.y = 30
     }
+  }
 }
 
-// Create Invader Projectile constructor
-class InvaderProjectile {
-    constructor({ position, velocity }) {
-        this.position = position;
-        this.velocity = velocity;
-
-        this.width = 3;
-        this.height = 10;
-    }
-
-    draw() {
-        c.fillStyle = "purple";
-        c.fillRect(this.position.x, this.position.y, this.width, this.height);
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-    }
-}
-
-// Create Bomb constructor
 class Bomb {
-    static radius = 30;
-    constructor({ position, velocity }) {
-        this.position = position;
-        this.velocity = velocity;
-        this.radius = 0;
-        this.color = "red";
-        this.opacity = 1;
-        this.active = false;
+  static radius = 30
+  constructor({ position, velocity }) {
+    this.position = position
+    this.velocity = velocity
+    this.radius = 0
+    this.color = 'red'
+    this.opacity = 1
+    this.active = false
 
-        gsap.to(this, {
-            radius: 30,
-        });
-    }
+    gsap.to(this, {
+      radius: 30
+    })
+  }
 
-    draw() {
-        c.save();
-        c.globalAlpha = this.opacity;
-        c.beginPath();
-        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        c.closePath();
-        c.fillStyle = this.color;
-        c.fill();
-        c.restore();
-    }
+  draw() {
+    c.save()
+    c.globalAlpha = this.opacity
+    c.beginPath()
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+    c.closePath()
+    c.fillStyle = this.color
+    c.fill()
+    c.restore()
+  }
 
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
 
-        if (
-            this.position.x + this.radius + this.velocity.x >= canvas.width ||
-            this.position.x - this.radius + this.velocity.x <= 0
-        ) {
-            this.velocity.x = -this.velocity.x;
-        } else if (
-            this.position.y + this.radius + this.velocity.y >= canvas.height ||
-            this.position.y - this.radius + this.velocity.y <= 0
-        ) {
-            this.velocity.y = -this.velocity.y;
-        }
-    }
+    if (
+      this.position.x + this.radius + this.velocity.x >= canvas.width ||
+      this.position.x - this.radius + this.velocity.x <= 0
+    ) {
+      this.velocity.x = -this.velocity.x
+    } else if (
+      this.position.y + this.radius + this.velocity.y >= canvas.height ||
+      this.position.y - this.radius + this.velocity.y <= 0
+    )
+      this.velocity.y = -this.velocity.y
+  }
 
-    explode() {
-        this.active = true;
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        gsap.to(this, {
-            radius: 100,
-            color: "white",
-        });
-        gsap.to(this, {
-            delay: 0.1,
-            opacity: 0,
-            duration: 0.15,
-        });
-    }
+  explode() {
+    this.active = true
+    this.velocity.x = 0
+    this.velocity.y = 0
+    gsap.to(this, {
+      radius: 200,
+      color: 'white'
+    })
+
+    gsap.to(this, {
+      delay: 0.1,
+      opacity: 0,
+      duration: 0.15
+    })
+  }
 }
 
-// Create Powerup constructor
 class PowerUp {
-    constructor({ position, velocity }) {
-        this.position = position;
-        this.velocity = velocity;
+  constructor({ position, velocity }) {
+    this.position = position
+    this.velocity = velocity
+    this.radius = 15
+  }
 
-        this.radius = 10;
-    }
+  draw() {
+    c.beginPath()
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+    c.fillStyle = 'yellow'
+    c.fill()
+    c.closePath()
+  }
 
-    draw() {
-        c.beginPath();
-        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        c.fillStyle = "yellow";
-        c.fill();
-        c.closePath();
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-    }
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
 }
 
 function randomBetween(min, max) {
-    return Math.random() * (max - min) + min;
+  return Math.random() * (max - min) + min
 }
 
-// Create player
-const player = new Player();
-
-// Create projectiles
-const projectiles = [];
-
-// Create particles
-const particles = [];
-
-// Create grids
-const grids = [];
-
-// Create invader projectiles
-const invaderProjectiles = [];
-
-// Create bombs
-const bombs = [];
-
-// Create PowerUps
-const powerUps = [];
+const player = new Player()
+const projectiles = []
+const grids = []
+const invaderProjectiles = []
+const particles = []
+const bombs = []
+const powerUps = []
 
 // Create Movement Keys
 const keys = {
@@ -388,287 +358,285 @@ const keys = {
     },
 };
 
-let frames = 0;
-let randomInterval = Math.floor(Math.random() * 500 + 500);
+let frames = 0
+let randomInterval = Math.floor(Math.random() * 500 + 500)
 let game = {
-    over: false,
-    active: true,
-};
-let score = 0;
+  over: false,
+  active: true
+}
+let score = 0
 
-// Create background stars
 for (let i = 0; i < 100; i++) {
-    particles.push(
-        new Particle({
-            position: {
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-            },
-            velocity: {
-                x: 0,
-                y: 0.4,
-            },
-            radius: Math.random() * 2,
-            color: "white",
-        })
-    );
+  particles.push(
+    new Particle({
+      position: {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height
+      },
+      velocity: {
+        x: 0,
+        y: 0.3
+      },
+      radius: Math.random() * 2,
+      color: 'white'
+    })
+  )
 }
 
-// Create particles
 function createParticles({ object, color, fades }) {
-    for (let i = 0; i < 15; i++) {
-        particles.push(
-            new Particle({
-                position: {
-                    x: object.position.x + object.width / 2,
-                    y: object.position.y + object.height / 2,
-                },
-                velocity: {
-                    x: (Math.random() - 0.5) * 2,
-                    y: (Math.random() - 0.5) * 2,
-                },
-                radius: Math.random() * 3,
-                color: color || "#BAA0DE",
-                fades,
-            })
-        );
-    }
+  for (let i = 0; i < 15; i++) {
+    particles.push(
+      new Particle({
+        position: {
+          x: object.position.x + object.width / 2,
+          y: object.position.y + object.height / 2
+        },
+        velocity: {
+          x: (Math.random() - 0.5) * 2,
+          y: (Math.random() - 0.5) * 2
+        },
+        radius: Math.random() * 3,
+        color: color || '#BAA0DE',
+        fades
+      })
+    )
+  }
 }
-
-// Create dynamic score labels
 
 function createScoreLabel({ score = 100, object }) {
-    const scoreLabel = document.createElement("label");
-    scoreLabel.innerHTML = score;
-    scoreLabel.style.position = "absolute";
-    scoreLabel.style.color = "white";
-    scoreLabel.style.top = object.position.y + "px";
-    scoreLabel.style.left = object.position.x + "px";
-    // scoreLabel.style.fontFamily = 'monospace'
-    scoreLabel.style.userSelect = "none";
-    document.querySelector("#parentDiv").appendChild(scoreLabel);
+  const scoreLabel = document.createElement('label')
+  scoreLabel.innerHTML = score
+  scoreLabel.style.position = 'absolute'
+  scoreLabel.style.color = 'white'
+  scoreLabel.style.top = object.position.y + 'px'
+  scoreLabel.style.left = object.position.x + 'px'
+  scoreLabel.style.userSelect = 'none'
+  document.querySelector('#parentDiv').appendChild(scoreLabel)
 
-    // add dynamic score label animation
-    gsap.to(scoreLabel, {
-        opacity: 0,
-        y: -20,
-        duration: 0.75,
-        onComplete: () => {
-            document.querySelector("#parentDiv").removeChild(scoreLabel);
-        },
-    });
+  gsap.to(scoreLabel, {
+    opacity: 0,
+    y: -30,
+    duration: 0.75,
+    onComplete: () => {
+      document.querySelector('#parentDiv').removeChild(scoreLabel)
+    }
+  })
 }
 
-let spawnInterval = 500;
-// Create animation loop
+function rectangularCollision({ rectangle1, rectangle2 }) {
+  return (
+    rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
+    rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
+    rectangle1.position.x <= rectangle2.position.x + rectangle2.width
+  )
+}
+
+function endGame() {
+  console.log('you lose')
+
+  setTimeout(() => {
+    player.opacity = 0
+    game.over = true
+  }, 0)
+
+  setTimeout(() => {
+    game.active = false
+  }, 2000)
+
+  createParticles({
+    object: player,
+    color: 'white',
+    fades: true
+  })
+}
+
+let spawnBuffer = 500
 function animate() {
-    if (!game.active) return;
-    requestAnimationFrame(animate);
-    c.fillStyle = "black";
-    c.fillRect(0, 0, canvas.width, canvas.height);
+  if (!game.active) return
+  requestAnimationFrame(animate)
+  c.fillStyle = 'black'
+  c.fillRect(0, 0, canvas.width, canvas.height)
 
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-        const powerUp = powerUps[i];
+  for (let i = powerUps.length - 1; i >= 0; i--) {
+    const powerUp = powerUps[i]
 
-        if (powerUp.position.x - powerUp.radius >= canvas.width) {
-            powerUps.splice(i, 1);
-        } else {
-            powerUp.update();
+    if (powerUp.position.x - powerUp.radius >= canvas.width)
+      powerUps.splice(i, 1)
+    else powerUp.update()
+  }
+
+  // spawn powerups
+  if (frames % 1000 === 0) {
+    powerUps.push(
+      new PowerUp({
+        position: {
+          x: 0,
+          y: Math.random() * 300 + 15
+        },
+        velocity: {
+          x: 5,
+          y: 0
         }
+      })
+    )
+  }
+
+  // spawn bombs
+  if (frames % 200 === 0 && bombs.length < 2) {
+    bombs.push(
+      new Bomb({
+        position: {
+          x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
+          y: randomBetween(Bomb.radius, canvas.height - Bomb.radius)
+        },
+        velocity: {
+          x: (Math.random() - 0.5) * 6,
+          y: (Math.random() - 0.5) * 6
+        }
+      })
+    )
+  }
+
+  for (let i = bombs.length - 1; i >= 0; i--) {
+    const bomb = bombs[i]
+
+    if (bomb.opacity <= 0) {
+      bombs.splice(i, 1)
+    } else bomb.update()
+  }
+
+  player.update()
+  particles.forEach((particle, i) => {
+    if (particle.position.y - particle.radius >= canvas.height) {
+      particle.position.x = Math.random() * canvas.width
+      particle.position.y = -particle.radius
     }
 
-    // spawn powerups
-    if (frames % 1000 === 0) {
-        powerUps.push(
-            new PowerUp({
-                position: {
-                    x: 0,
-                    y: Math.random() * 300 + 15,
-                },
-                velocity: {
-                    x: 5,
-                    y: 0,
-                },
-            })
-        );
+    if (particle.opacity <= 0) {
+      setTimeout(() => {
+        particles.splice(i, 1)
+      }, 0)
+    } else {
+      particle.update()
+    }
+  })
+
+  invaderProjectiles.forEach((invaderProjectile, index) => {
+    if (
+      invaderProjectile.position.y + invaderProjectile.height >=
+      canvas.height
+    ) {
+      setTimeout(() => {
+        invaderProjectiles.splice(index, 1)
+      }, 0)
+    } else invaderProjectile.update()
+
+    // projectile hits player
+    if (
+      rectangularCollision({
+        rectangle1: invaderProjectile,
+        rectangle2: player
+      })
+    ) {
+      invaderProjectiles.splice(index, 1)
+      endGame()
+    }
+  })
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const projectile = projectiles[i]
+
+    for (let j = bombs.length - 1; j >= 0; j--) {
+      const bomb = bombs[j]
+
+      // if projectile touches bomb, remove projectile
+      if (
+        Math.hypot(
+          projectile.position.x - bomb.position.x,
+          projectile.position.y - bomb.position.y
+        ) <
+          projectile.radius + bomb.radius &&
+        !bomb.active
+      ) {
+        projectiles.splice(i, 1)
+        bomb.explode()
+      }
     }
 
-    // spawn bombs
-    if (frames % 200 === 0 && bombs.length < 2) {
-        bombs.push(
-            new Bomb({
-                position: {
-                    x: randomBetween(Bomb.radius, canvas.width - Bomb.radius),
-                    y: randomBetween(Bomb.radius, canvas.height - Bomb.radius),
-                },
-                velocity: {
-                    x: (Math.random() - 0.5) * 6,
-                    y: (Math.random() - 0.5) * 6,
-                },
-            })
-        );
+    for (let j = powerUps.length - 1; j >= 0; j--) {
+      const powerUp = powerUps[j]
+
+      // if projectile touches bomb, remove projectile
+      if (
+        Math.hypot(
+          projectile.position.x - powerUp.position.x,
+          projectile.position.y - powerUp.position.y
+        ) <
+        projectile.radius + powerUp.radius
+      ) {
+        projectiles.splice(i, 1)
+        powerUps.splice(j, 1)
+        player.powerUp = 'MachineGun'
+        console.log('powerup started')
+
+        setTimeout(() => {
+          player.powerUp = null
+          console.log('powerup ended')
+        }, 5000)
+      }
     }
 
-    // animate bombs
-    for (let i = bombs.length - 1; i >= 0; i--) {
-        const bomb = bombs[i];
+    if (projectile.position.y + projectile.radius <= 0) {
+      projectiles.splice(i, 1)
+    } else {
+      projectile.update()
+    }
+  }
 
-        if (bomb.opacity <= 0) {
-            bombs.splice(i, 1);
-        }
-        bomb.update();
+  grids.forEach((grid, gridIndex) => {
+    grid.update()
+
+    // spawn projectiles
+    if (frames % 100 === 0 && grid.invaders.length > 0) {
+      grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(
+        invaderProjectiles
+      )
     }
 
-    // animate player
-    player.update();
+    for (let i = grid.invaders.length - 1; i >= 0; i--) {
+      const invader = grid.invaders[i]
+      invader.update({ velocity: grid.velocity })
 
-    // animate particles
-    particles.forEach((particle, i) => {
-        if (particle.position.y - particle.radius >= canvas.height) {
-            particle.position.x = Math.random() * canvas.width;
-            particle.position.y = -particle.radius;
-        }
+      for (let j = bombs.length - 1; j >= 0; j--) {
+        const bomb = bombs[j]
 
-        if (particle.opacity <= 0) {
-            setTimeout(() => {
-                particles.splice(i, 1);
-            }, 0);
-        }
-        particle.update();
-    });
+        const invaderRadius = 15
 
-    invaderProjectiles.forEach((invaderProjectile, index) => {
+        // if bomb touches invader, remove invader
         if (
-            invaderProjectile.position.y + invaderProjectile.height >=
-            canvas.height
+          Math.hypot(
+            invader.position.x - bomb.position.x,
+            invader.position.y - bomb.position.y
+          ) <
+            invaderRadius + bomb.radius &&
+          bomb.active
         ) {
-            setTimeout(() => {
-                invaderProjectiles.splice(index, 1);
-            }, 0);
-        } else invaderProjectile.update();
+          score += 50
+          scoreEl.innerHTML = score
 
-        // Projectile hits player
-        if (
-            invaderProjectile.position.y + invaderProjectile.height >=
-                player.position.y &&
-            invaderProjectile.position.x + invaderProjectile.width >=
-                player.position.x &&
-            invaderProjectile.position.x <= player.position.x + player.width
-        ) {
-            console.log("you lose!");
-            setTimeout(() => {
-                invaderProjectiles.splice(index, 1);
-                player.opacity = 0;
-                game.over = true;
-            }, 0);
-            // End the game
-            setTimeout(() => {
-                game.active = false;
-            }, 2000);
-            createParticles({
-                object: player,
-                color: "white",
-                fades: true,
-            });
+          grid.invaders.splice(i, 1)
+          createScoreLabel({
+            object: invader,
+            score: 50
+          })
+
+          createParticles({
+            object: invader,
+            fades: true
+          })
         }
-    });
-
-    // Remove projectiels
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-        const projectile = projectiles[i];
-
-        for (let j = bombs.length - 1; j >= 0; j--) {
-            const bomb = bombs[j];
-
-            // if projectile touches bomb, remove projectile
-            if (
-                Math.hypot(
-                    projectile.position.x - bomb.position.x,
-                    projectile.position.y - bomb.position.y
-                ) <
-                    projectile.radius + bomb.radius &&
-                !bomb.active
-            ) {
-                projectiles.splice(i, 1);
-                bomb.explode();
-            }
-        }
-
-        // Remove powerUps
-        for (let k = powerUps.length - 1; k >= 0; k--) {
-            const powerUp = powerUps[k];
-
-            // if projectile touches bomb, remove projectile
-            if (
-                Math.hypot(
-                    projectile.position.x - powerUp.position.x,
-                    projectile.position.y - powerUp.position.y
-                ) <
-                projectile.radius + powerUp.radius
-            ) {
-                projectiles.splice(i, 1);
-                powerUps.splice(k, 1);
-                player.powerUp = "MachineGun";
-                setTimeout(() => {
-                    console.log("powerUp started");
-                    player.powerUp = null;
-                    console.log("powerUp ended");
-                }, 3000);
-            }
-        }
-
-        if (projectile.position.y + projectile.radius <= 0) {
-            projectiles.splice(i, 1);
-        } else {
-            projectile.update();
-        }
-    }
-
-    // animate projectiles
-    grids.forEach((grid, gridIndex) => {
-        grid.update();
-        // spawn projectiles
-        if (frames % 100 === 0 && grid.invaders.length > 0) {
-            grid.invaders[
-                Math.floor(Math.random() * grid.invaders.length)
-            ].shoot(invaderProjectiles);
-        }
-
-        // remove invaders on bomb explosion
-        for (let i = grid.invaders.length - 1; i >= 0; i--) {
-            const invader = grid.invaders[i];
-            invader.update({ velocity: grid.velocity });
-
-            for (let j = bombs.length - 1; j >= 0; j--) {
-                const bomb = bombs[j];
-
-                const invaderRadius = 15;
-
-                // if bomb touches invader, remove invader
-                if (
-                    Math.hypot(
-                        invader.position.x - bomb.position.x,
-                        invader.position.y - bomb.position.y
-                    ) <
-                        invaderRadius + bomb.radius &&
-                    bomb.active
-                ) {
-                    score += 50;
-                    scoreVal.innerHTML = score;
-                    grid.invaders.splice(i, 1);
-                    createScoreLabel({
-                        object: invader,
-                        score: 50,
-                    });
-                    // create particle effects
-                    createParticles({
-                        object: invader,
-                        fades: true,
-                    });
-                }
-            }
-
-            // projectiles hit enemy
+      }
+// projectiles hit enemy
             projectiles.forEach((projectile, j) => {
                 if (
                     projectile.position.y - projectile.radius <=
@@ -725,10 +693,20 @@ function animate() {
                     }, 0);
                 }
             });
-        }
-    });
 
-    // Animate horizontal movement
+      // remove player if invaders touch it
+      if (
+        rectangularCollision({
+          rectangle1: invader,
+          rectangle2: player
+        }) &&
+        !game.over
+      )
+        endGame()
+    } // end looping over grid.invaders
+  })
+
+        // Animate horizontal movement
     if (keys.h.pressed && player.position.x >= 0) {
         player.velocity.x = -5;
         player.rotation = -0.15;
@@ -758,61 +736,55 @@ function animate() {
         player.velocity.y = 0;
     }
 
-    // spawn enemies
-    if (frames % randomInterval === 0) {
-        console.log(spawnInterval);
-        console.log(randomInterval);
-        spawnInterval = spawnInterval < 0 ? 100 : spawnInterval;
-        grids.push(new Grid());
-        frames = 0;
-        randomInterval = Math.floor(Math.random() * 500 + spawnInterval);
-        spawnInterval -= 100;
-    }
+  // spawning enemies
+  if (frames % randomInterval === 0) {
+    console.log(spawnBuffer)
+    console.log(randomInterval)
+    spawnBuffer = spawnBuffer < 0 ? 100 : spawnBuffer
+    grids.push(new Grid())
+    randomInterval = Math.floor(Math.random() * 500 + spawnBuffer)
+    frames = 0
+    spawnBuffer -= 100
+  }
 
-    if (
-        keys.space.pressed &&
-        player.powerUp === "MachineGun" &&
-        frames % 10 === 0
-    ) {
-        projectiles.push(
-            new Projectile({
-                position: {
-                    x: player.position.x + player.width / 2,
-                    y: player.position.y,
-                },
-                velocity: {
-                    x: 0,
-                    y: -10,
-                },
-                color: "yellow",
-            })
-        );
-    }
+  if (keys.space.pressed && player.powerUp === 'MachineGun' && frames % 2 === 0)
+    projectiles.push(
+      new Projectile({
+        position: {
+          x: player.position.x + player.width / 2,
+          y: player.position.y
+        },
+        velocity: {
+          x: 0,
+          y: -10
+        },
+        color: 'yellow'
+      })
+    )
 
-    frames++;
+  frames++
 }
 
-// Run animation loop
-animate();
+animate()
 
 // Add Movement via Vim Bindings
 addEventListener("keydown", ({ key }) => {
     if (game.over) return;
     switch (key) {
         case "h":
-            console.log("left");
+            // console.log("left");
             keys.h.pressed = true;
             break;
         case "j":
-            console.log("down");
+            // console.log("down");
             keys.j.pressed = true;
             break;
         case "k":
-            console.log("up");
+            // console.log("up");
             keys.k.pressed = true;
             break;
         case "l":
-            console.log("right");
+            // console.log("right");
             keys.l.pressed = true;
             break;
         case " ":
@@ -831,7 +803,6 @@ addEventListener("keydown", ({ key }) => {
                     },
                 })
             );
-            // console.log(projectiles)
             break;
     }
 });
