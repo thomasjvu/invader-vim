@@ -66,6 +66,9 @@ class Player {
             this.position.y += this.velocity.y;
         }
 
+        // Stop particles if player is hit
+        if (this.opacity !== 1) return
+
         this.frames++;
         if (this.frames % 2 === 0) {
             this.particles.push(
@@ -356,16 +359,18 @@ function randomBetween(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-const player = new Player();
-const projectiles = [];
-const grids = [];
-const invaderProjectiles = [];
-const particles = [];
-const bombs = [];
-const powerUps = [];
+// Create Game Objects & Arrays
 
-// Create Movement Keys
-const keys = {
+let player = new Player();
+let projectiles = [];
+let grids = [];
+let invaderProjectiles = [];
+let particles = [];
+let bombs = [];
+let powerUps = [];
+
+// Create Player Keys
+let keys = {
     h: {
         pressed: false,
     },
@@ -390,6 +395,61 @@ let game = {
     active: true,
 };
 let score = 0;
+
+function init() {
+    player = new Player();
+    projectiles = [];
+    grids = [];
+    invaderProjectiles = [];
+    particles = [];
+    bombs = [];
+    powerUps = [];
+
+    keys = {
+        h: {
+            pressed: false,
+        },
+        j: {
+            pressed: false,
+        },
+        k: {
+            pressed: false,
+        },
+        l: {
+            pressed: false,
+        },
+        space: {
+            pressed: false,
+        },
+};
+
+    frames = 0;
+    randomInterval = Math.floor(Math.random() * 500 + 500);
+    game = {
+        over: false,
+        active: true,
+    };
+    score = 0;
+
+    for (let i = 0; i < 100; i++) {
+        particles.push(
+            new Particle({
+                position: {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                },
+                velocity: {
+                    x: 0,
+                    y: 0.3,
+                },
+                radius: Math.random() * 2,
+                color: "white",
+            })
+        );
+    }
+}
+
+
 
 for (let i = 0; i < 100; i++) {
     particles.push(
@@ -459,14 +519,17 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
 function endGame() {
     console.log("you lose");
 
+    // Makes Player disappear
     setTimeout(() => {
         player.opacity = 0;
         game.over = true;
     }, 0);
 
+    // Stops game altogether
     setTimeout(() => {
         game.active = false;
-    }, 2000);
+        document.querySelector('#gameOver').style.display = 'flex'
+    }, 1000);
 
     createParticles({
         object: player,
@@ -535,6 +598,10 @@ function animate() {
     for (let i = player.particles.length - 1; i >= 0; i--) {
         const particle = player.particles[i];
         particle.update();
+
+        if (particle.opacity === 0) {
+            player.particles[i].splice(i, 1)
+        }
     }
 
     particles.forEach((particle, i) => {
@@ -800,7 +867,21 @@ function animate() {
     frames++;
 }
 
-animate();
+// Start Button
+document.querySelector('#start-btn').addEventListener('click', () => {
+    document.querySelector('#start').style.display = 'none'
+    document.querySelector('#score').style.display = 'block'
+    init()
+    animate()
+})
+
+// Restart Button
+document.querySelector('#restart-btn').addEventListener('click', () => {
+    document.querySelector('#gameOver').style.display = 'none'
+    document.querySelector('#score').style.display = 'block'
+    init()
+    animate()
+})
 
 // Add Movement via Vim Bindings
 addEventListener("keydown", ({ key }) => {
