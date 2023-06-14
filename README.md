@@ -8,9 +8,13 @@ Invader Vim is created to be a fun way to introduce people to Vim Keybindings by
 
 ## Instructions
 Left: `h`
+
 Right: `l`
+
 Up: `k`
+
 Down: `j`
+
 Attack: `space`
 
 ## Roadmap
