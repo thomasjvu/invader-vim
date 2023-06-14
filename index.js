@@ -188,8 +188,6 @@ class Invader {
     }
 
     draw() {
-        // c.fillStyle = 'red'
-        // c.fillRect(this.position.x, this.position.y, this.width, this.height)
 
         c.drawImage(
             this.image,
@@ -217,7 +215,7 @@ class Invader {
                 },
                 velocity: {
                     x: 0,
-                    y: 7.5,
+                    y: 3,
                 },
             })
         );
@@ -232,7 +230,7 @@ class Grid {
         };
 
         this.velocity = {
-            x: 3,
+            x: 1.25,
             y: 0,
         };
 

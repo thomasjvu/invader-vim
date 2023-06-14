@@ -10,7 +10,7 @@ body {
     background: black;
     color: white;
     margin: 0;
-    height: 100vh;
+    min-height: 100vh;
     font-family: monospace;
 }
 
@@ -99,3 +99,9 @@ span {
 /*     position: absolute; */
 /*     color: white; */
 /* } */
+
+ol {
+    display: flex;
+    align-items: center;
+    flex-flow: column;
+}
