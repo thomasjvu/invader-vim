@@ -15,8 +15,10 @@ body {
 }
 
 canvas {
-    border: 1px solid green;
+    border: 2px solid #00ff00;
     border-radius: 5px;
+    position: relative;
+    z-index: 10;
 }
 
 h1 {
@@ -25,7 +27,7 @@ h1 {
 }
 
 #title {
-    max-width: 50%;
+    max-width: 40%;
     margin-bottom: 50px;
 }
 
@@ -44,17 +46,17 @@ main {
 }
 #start,
 #gameOver {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: absolute;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    background: url('../img/start-bg.png');
-    background-size: contain;
-    background-repeat: no-repeat;
+    width: 1024px;
+    height: 576px;
+    border: 2px solid #00ff00;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     z-index: 20;
 }
 #gameOver {
@@ -76,14 +78,32 @@ button {
 }
 #start-text,
 #restart-text {
-    position: absolute;
-    color: white;
+    position: relative;
+    color: #30cf30;
+    font-size: 1.5em;
     font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#start-btn::before,
+#restart-btn::before {
+    content: ">";
+    position: absolute;
+    left: 15px;
+    color: #30cf30;
+    font-family: monospace;
+    font-size: 1.5em;
+}
+
+#start-btn-img,
+#restart-btn-img {
+    display: none;
 }
 
 #score{
     position: absolute;
-    z-index: 10;
+    z-index: 15;
     color: white;
     left: 15px;
     top: 15px;
@@ -103,5 +123,224 @@ span {
 ol {
     display: flex;
     align-items: center;
-    flex-flow: column;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px 40px;
+    border-radius: 10px;
+    border: 1px solid #30cf30;
+    margin-top: 20px;
+    max-width: 600px;
+}
+
+.instructions {
+    color: #fff;
+    font-size: 1.1em;
+    margin: 8px 0;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.vim-command {
+    color: #30cf30;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 0 4px;
+    font-weight: bold;
+}
+
+#audio-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#mute-btn {
+    color: #30cf30;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+#volume-slider {
+    width: 100px;
+    accent-color: #30cf30;
+}
+
+/* Style the start/restart buttons */
+#start-btn,
+#restart-btn {
+    padding: 15px 40px;
+    border: 2px solid #30cf30;
+    border-radius: 5px;
+    background: rgba(48, 207, 48, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#start-btn:hover,
+#restart-btn:hover {
+    background: rgba(48, 207, 48, 0.2);
+    transform: scale(1.05);
+}
+
+#start-btn:active,
+#restart-btn:active {
+    transform: scale(0.95);
+}
+
+/* Add a terminal-style title */
+.terminal-title {
+    font-family: monospace;
+    color: #30cf30;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(48, 207, 48, 0.5);
+}
+
+/* Add a blinking cursor effect */
+.cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.5em;
+    background: #30cf30;
+    margin-left: 5px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    pointer-events: auto;
+    width: 650px;
+}
+
+.menu-item {
+    padding: 15px 40px;
+    border: 2px solid #30cf30;
+    border-radius: 5px;
+    background: rgba(48, 207, 48, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    width: 650px;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: auto;
+}
+
+.menu-item.selected {
+    background: rgba(48, 207, 48, 0.3);
+    transform: scale(1.05);
+}
+
+.menu-item::before {
+    content: ">";
+    position: absolute;
+    left: 15px;
+    color: #30cf30;
+    font-family: monospace;
+    font-size: 1.5em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-item.selected::before {
+    opacity: 1;
+}
+
+.menu-text {
+    color: #30cf30;
+    font-size: 1.2em;
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-left: 20px;
+    pointer-events: none;
+}
+
+.instructions-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.instructions-container.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.back-button {
+    align-self: flex-start;
+    margin-left: 40px;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    border: 2px solid #30cf30;
+    border-radius: 5px;
+    background: rgba(48, 207, 48, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(48, 207, 48, 0.2);
+    transform: scale(1.05);
+}
+
+.instructions-list {
+    margin: 0;
+    padding: 30px 40px;
+    width: 650px;
+    background: rgba(0, 0, 0, 1);
+    border: 2px solid #30cf30;
+    border-radius: 10px;
+}
+
+/* Add this to ensure proper positioning of the overlays */
+#parentDiv {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    margin: 0 auto;
+}
+
+/* Add this new style section */
+.vim-description {
+    text-align: center;
+    color: #30cf30;
+    font-family: monospace;
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #30cf30;
+    background: rgba(48, 207, 48, 0.1);
+    border-radius: 5px;
+    width: 650px;
+}
+
+.vim-description p {
+    margin: 5px 0;
+    font-size: 1.1em;
+    text-shadow: 0 0 5px rgba(48, 207, 48, 0.5);
 }

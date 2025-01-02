@@ -10,27 +10,90 @@
         <img src="img/title.png" id="title" />
         <main id="parentDiv">
             <p id="score">
-                Score:
-                <span id="scoreVal">0</span>
+                Score: <span id="scoreVal">0</span> | Level: <span id="levelVal">1</span> | High Score: <span id="highScoreVal">0</span>
             </p>
+            <div id="audio-controls">
+                <button id="mute-btn" class="vim-command">
+                    🔊
+                </button>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+            </div>
             <canvas></canvas>
             <div id="start">
-                <button id="start-btn">
-                    <img id="start-btn-img" src="img/button.png" alt="Start Button">
-                    <span id="start-text">Start</span>
-                </button>
+                <h2 class="terminal-title">
+                    SPACE INVADERS (VIM STYLE)<span class="cursor"></span>
+                </h2>
+                <div class="vim-description">
+                    <p>Vim is a text editor that uses keyboard commands for efficiency.</p>
+                    <p>Master Vim movements to survive the alien invasion!</p>
+                </div>
+                <div class="menu-container">
+                    <button class="menu-item selected" data-action="start">
+                        <span class="menu-text">Start Game</span>
+                    </button>
+                    <button class="menu-item" data-action="difficulty">
+                        <span class="menu-text">Difficulty: <span id="difficulty-level">Normal</span></span>
+                    </button>
+                    <button class="menu-item" data-action="instructions">
+                        <span class="menu-text">Instructions</span>
+                    </button>
+                </div>
+                <div class="instructions-container hidden">
+                    <button class="back-button">
+                        <span class="menu-text">← Back</span>
+                    </button>
+                    <ol class="instructions-list">
+                        <li class="instructions">
+                            Basic Movement: 
+                            <span class="vim-command">h</span> left 
+                            <span class="vim-command">j</span> down 
+                            <span class="vim-command">k</span> up 
+                            <span class="vim-command">l</span> right
+                        </li>
+                        <li class="instructions">
+                            Jump Movement: 
+                            <span class="vim-command">w</span> forward 
+                            <span class="vim-command">b</span> backward
+                        </li>
+                        <li class="instructions">
+                            Line Movement: 
+                            <span class="vim-command">0</span> start 
+                            <span class="vim-command">$</span> end
+                        </li>
+                        <li class="instructions">
+                            Vertical Movement: 
+                            <span class="vim-command">gg</span> top 
+                            <span class="vim-command">G</span> bottom
+                        </li>
+                        <li class="instructions">
+                            Combat: <span class="vim-command">space</span> to shoot
+                        </li>
+                        <li class="instructions">
+                            Power-ups: Hit colored orbs for special abilities
+                        </li>
+                        <li class="instructions">
+                            Menu Navigation: 
+                            <span class="vim-command">j</span> down 
+                            <span class="vim-command">k</span> up
+                            <span class="vim-command">l</span> select
+                            <span class="vim-command">h</span> back
+                        </li>
+                    </ol>
+                </div>
             </div>
             <div id="gameOver">
-                <button id="restart-btn">
-                    <img id="restart-btn-img" src="img/button.png" alt="Restart Button">
-                    <span id="restart-text">Restart</span>
-                </button>
+                <h2 class="terminal-title">
+                    GAME OVER<span class="cursor"></span>
+                </h2>
+                <div class="menu-container">
+                    <button class="menu-item selected" data-action="restart">
+                        <span class="menu-text">Restart</span>
+                    </button>
+                    <button class="menu-item" data-action="menu">
+                        <span class="menu-text">Back to Menu</span>
+                    </button>
+                </div>
             </div>
-            <ol>
-                <li class="instructions">Move using the HJKL keys and shoot with the spacebar.</li>
-                <li class="instructions">Hit red and yellow balls for a boost.</li>
-                <li class="instructions">Don't let the aliens reach you!</li>
-            </ol>
         </main>
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"

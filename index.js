@@ -1,9 +1,31 @@
 const scoreVal = document.querySelector("#scoreVal");
 const canvas = document.querySelector("canvas");
 const c = canvas.getContext("2d");
+const highScoreVal = document.querySelector("#highScoreVal");
 
 canvas.width = 1024;
 canvas.height = 576;
+
+const audio = {
+    background: new Audio('./audio/background.wav'),
+    shoot: new Audio('./audio/shoot.wav'),
+    explosion: new Audio('./audio/explosion.wav'),
+    powerUp: new Audio('./audio/powerup.wav'),
+    command: new Audio('./audio/command.wav')
+};
+
+audio.background.loop = true;
+
+function playSound(sound) {
+    const soundToPlay = audio[sound];
+    if (soundToPlay) {
+        soundToPlay.currentTime = 0;
+        soundToPlay.play();
+    }
+}
+
+let highScore = parseInt(localStorage.getItem('invaderVimHighScore')) || 0;
+highScoreVal.innerHTML = highScore;
 
 class Player {
     constructor() {
@@ -30,6 +52,8 @@ class Player {
 
         this.particles = [];
         this.frames = 0;
+        this.shielded = false;
+        this.speedMultiplier = 1;
     }
 
     draw() {
@@ -87,6 +111,24 @@ class Player {
                 })
             );
         }
+    }
+
+    applyPowerUp(powerUp) {
+        powerUp.type.effect(this);
+        
+        // Create visual effect
+        createParticles({
+            object: this,
+            color: powerUp.type.color,
+            fades: true
+        });
+
+        // Remove power-up after duration
+        setTimeout(() => {
+            if (powerUp.type.name === 'Machine Gun') this.powerUp = null;
+            if (powerUp.type.name === 'Shield') this.shielded = false;
+            if (powerUp.type.name === 'Speed Boost') this.speedMultiplier = 1;
+        }, powerUp.type.duration);
     }
 }
 
@@ -148,8 +190,10 @@ class Particle {
 class InvaderProjectile {
     constructor({ position, velocity }) {
         this.position = position;
-        this.velocity = velocity;
-
+        this.velocity = {
+            x: velocity.x,
+            y: velocity.y * currentDifficulty.projectileSpeed
+        };
         this.width = 3;
         this.height = 10;
     }
@@ -215,7 +259,7 @@ class Invader {
                 },
                 velocity: {
                     x: 0,
-                    y: 3,
+                    y: 1,
                 },
             })
         );
@@ -230,7 +274,7 @@ class Grid {
         };
 
         this.velocity = {
-            x: 1.25,
+            x: currentDifficulty.invaderSpeed,
             y: 0,
         };
 
@@ -261,10 +305,8 @@ class Grid {
 
         this.velocity.y = 0;
 
-        if (
-            this.position.x + this.width >= canvas.width ||
-            this.position.x <= 0
-        ) {
+        if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+            // Reverse direction and increase speed slightly
             this.velocity.x = -this.velocity.x * 1.15;
             this.velocity.y = 30;
         }
@@ -336,12 +378,17 @@ class PowerUp {
         this.position = position;
         this.velocity = velocity;
         this.radius = 15;
+        
+        // Randomly select power-up type
+        this.type = Object.values(POWER_UPS)[
+            Math.floor(Math.random() * Object.values(POWER_UPS).length)
+        ];
     }
 
     draw() {
         c.beginPath();
         c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        c.fillStyle = "yellow";
+        c.fillStyle = this.type.color;
         c.fill();
         c.closePath();
     }
@@ -384,6 +431,27 @@ let keys = {
     space: {
         pressed: false,
     },
+    w: {
+        pressed: false,
+    },
+    b: {
+        pressed: false,
+    },
+    0: {
+        pressed: false,
+    },
+    $: {
+        pressed: false,
+    },
+    f: {
+        pressed: false,
+    },
+    gg: {
+        pressed: false,
+    },
+    G: {
+        pressed: false,
+    },
 };
 
 let frames = 0;
@@ -393,6 +461,32 @@ let game = {
     active: true,
 };
 let score = 0;
+
+// Add volume control functionality
+let isMuted = false;
+const muteBtn = document.querySelector('#mute-btn');
+const volumeSlider = document.querySelector('#volume-slider');
+
+muteBtn.addEventListener('click', () => {
+    isMuted = !isMuted;
+    muteBtn.textContent = isMuted ? '🔈' : '🔊';
+    
+    Object.values(audio).forEach(sound => {
+        sound.muted = isMuted;
+    });
+});
+
+volumeSlider.addEventListener('input', (e) => {
+    const volume = e.target.value;
+    Object.values(audio).forEach(sound => {
+        sound.volume = volume;
+    });
+});
+
+// Set initial volumes
+Object.values(audio).forEach(sound => {
+    sound.volume = volumeSlider.value;
+});
 
 function init() {
     player = new Player();
@@ -419,7 +513,28 @@ function init() {
         space: {
             pressed: false,
         },
-};
+        w: {
+            pressed: false,
+        },
+        b: {
+            pressed: false,
+        },
+        0: {
+            pressed: false,
+        },
+        $: {
+            pressed: false,
+        },
+        f: {
+            pressed: false,
+        },
+        gg: {
+            pressed: false,
+        },
+        G: {
+            pressed: false,
+        },
+    };
 
     frames = 0;
     randomInterval = Math.floor(Math.random() * 500 + 500);
@@ -445,6 +560,11 @@ function init() {
             })
         );
     }
+
+    currentLevel = 1;
+    enemiesDefeatedInLevel = 0;
+    enemiesRequiredForNextLevel = 20;
+    document.querySelector('#levelVal').innerHTML = currentLevel;
 }
 
 
@@ -467,6 +587,7 @@ for (let i = 0; i < 100; i++) {
 }
 
 function createParticles({ object, color, fades }) {
+    playSound('explosion');
     for (let i = 0; i < 15; i++) {
         particles.push(
             new Particle({
@@ -517,6 +638,46 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
 function endGame() {
     console.log("you lose");
 
+    // Get the correct high score for current difficulty
+    const difficultyKey = `invaderVimHighScore_${currentDifficulty.name.toLowerCase().replace(' ', '_')}`;
+    const currentHighScore = parseInt(localStorage.getItem(difficultyKey)) || 0;
+
+    // Check for new high score
+    if (score > currentHighScore) {
+        // Update both local and difficulty-specific high scores
+        highScore = score;
+        currentDifficulty.highScore = score;
+        localStorage.setItem(difficultyKey, score);
+        localStorage.setItem('invaderVimHighScore', score);
+        highScoreVal.innerHTML = highScore;
+        
+        // Create high score celebration effect at player's position
+        for (let i = 0; i < 50; i++) {
+            particles.push(
+                new Particle({
+                    position: {
+                        x: player.position.x + player.width / 2,
+                        y: player.position.y + player.height / 2
+                    },
+                    velocity: {
+                        x: (Math.random() - 0.5) * 8,
+                        y: (Math.random() - 0.5) * 8
+                    },
+                    radius: Math.random() * 3,
+                    color: '#FFD700', // Gold color for high score
+                    fades: true
+                })
+            );
+        }
+    }
+
+    // Create death particles at player's position
+    createParticles({
+        object: player,
+        color: "white",
+        fades: true,
+    });
+
     // Makes Player disappear
     setTimeout(() => {
         player.opacity = 0;
@@ -526,14 +687,16 @@ function endGame() {
     // Stops game altogether
     setTimeout(() => {
         game.active = false;
-        document.querySelector('#gameOver').style.display = 'flex'
+        document.querySelector('#gameOver').style.display = 'flex';
+        
+        // Add high score message if it's a new record
+        const gameOverTitle = document.querySelector('#gameOver .terminal-title');
+        if (score > highScore) {
+            gameOverTitle.innerHTML = `NEW HIGH SCORE: ${score}!<span class="cursor"></span>`;
+        } else {
+            gameOverTitle.innerHTML = `GAME OVER<span class="cursor"></span>`;
+        }
     }, 1000);
-
-    createParticles({
-        object: player,
-        color: "white",
-        fades: true,
-    });
 }
 
 let spawnBuffer = 500;
@@ -552,7 +715,7 @@ function animate() {
     }
 
     // spawn powerups
-    if (frames % 750 === 0) {
+    if (frames % currentDifficulty.powerUpFrequency === 0) {
         powerUps.push(
             new PowerUp({
                 position: {
@@ -635,7 +798,18 @@ function animate() {
             })
         ) {
             invaderProjectiles.splice(index, 1);
-            endGame();
+            
+            // Only end game if player is not shielded
+            if (!player.shielded) {
+                endGame();
+            } else {
+                // If player is shielded, just create shield hit effect
+                createParticles({
+                    object: player,
+                    color: 'blue',
+                    fades: true
+                });
+            }
         }
     });
 
@@ -673,6 +847,7 @@ function animate() {
                 projectiles.splice(i, 1);
                 powerUps.splice(j, 1);
                 player.powerUp = "MachineGun";
+                playSound('powerUp');
                 console.log("powerup started");
 
                 setTimeout(() => {
@@ -717,8 +892,10 @@ function animate() {
                         invaderRadius + bomb.radius &&
                     bomb.active
                 ) {
-                    score += 50;
+                    score += 50 * currentDifficulty.score_multiplier;
                     scoreVal.innerHTML = score;
+                    enemiesDefeatedInLevel++;
+                    checkLevelProgression();
 
                     grid.invaders.splice(i, 1);
                     createScoreLabel({
@@ -755,8 +932,10 @@ function animate() {
 
                         // remove invader and projectile on hit
                         if (invaderFound && projectileFound) {
-                            score += 100;
+                            score += 100 * currentDifficulty.score_multiplier;
                             scoreVal.innerHTML = score;
+                            enemiesDefeatedInLevel++;
+                            checkLevelProgression();
 
                             // create dynamic score labels
                             createScoreLabel({
@@ -833,9 +1012,9 @@ function animate() {
     }
 
     // spawning enemies
-    if (frames % randomInterval === 0) {
+    if (frames % currentDifficulty.spawnRate === 0) {
         console.log(spawnBuffer);
-        console.log(randomInterval);
+        console.log(currentDifficulty.spawnRate);
         spawnBuffer = spawnBuffer < 0 ? 100 : spawnBuffer;
         grids.push(new Grid());
         randomInterval = Math.floor(Math.random() * 500 + spawnBuffer);
@@ -862,48 +1041,83 @@ function animate() {
             })
         );
 
+    // Ensure player stays within canvas bounds
+    player.position.x = Math.max(0, Math.min(canvas.width - player.width, player.position.x));
+    player.position.y = Math.max(0, Math.min(canvas.height - player.height - 20, player.position.y));
+
     frames++;
 }
-
-// Start Button
-document.querySelector('#start-btn').addEventListener('click', () => {
-    document.querySelector('#start').style.display = 'none'
-    document.querySelector('#score').style.display = 'block'
-    init()
-    animate()
-})
-
-// Restart Button
-document.querySelector('#restart-btn').addEventListener('click', () => {
-    document.querySelector('#gameOver').style.display = 'none'
-    document.querySelector('#score').style.display = 'block'
-    init()
-    animate()
-})
 
 // Add Movement via Vim Bindings
 addEventListener("keydown", ({ key }) => {
     if (game.over) return;
     switch (key) {
         case "h":
-            // console.log("left");
             keys.h.pressed = true;
             break;
         case "j":
-            // console.log("down");
             keys.j.pressed = true;
             break;
         case "k":
-            // console.log("up");
             keys.k.pressed = true;
             break;
         case "l":
-            // console.log("right");
             keys.l.pressed = true;
             break;
         case " ":
-            // console.log("space");
             keys.space.pressed = true;
+            break;
+        case "w":
+            player.position.x += 100;
+            particles.push(...createCommandParticles({
+                position: { x: player.position.x, y: player.position.y },
+                text: "w"
+            }));
+            break;
+        case "b":
+            player.position.x -= 100;
+            particles.push(...createCommandParticles({
+                position: { x: player.position.x, y: player.position.y },
+                text: "b"
+            }));
+            break;
+        case "0":
+            player.position.x = 0;
+            particles.push(...createCommandParticles({
+                position: { x: player.position.x, y: player.position.y },
+                text: "0"
+            }));
+            break;
+        case "$":
+            player.position.x = canvas.width - player.width;
+            particles.push(...createCommandParticles({
+                position: { x: player.position.x, y: player.position.y },
+                text: "$"
+            }));
+            break;
+        case "g":
+            if (keys.g) {
+                // Move to top of play area (100px from bottom)
+                player.position.y = canvas.height - player.height - 100;
+                particles.push(...createCommandParticles({
+                    position: { x: player.position.x, y: player.position.y },
+                    text: "gg"
+                }));
+                keys.g = false;
+            } else {
+                keys.g = true;
+                setTimeout(() => {
+                    keys.g = false;
+                }, 300);
+            }
+            break;
+        case "G":
+            // Move to bottom
+            player.position.y = canvas.height - player.height - 20;
+            particles.push(...createCommandParticles({
+                position: { x: player.position.x, y: player.position.y },
+                text: "G"
+            }));
             break;
     }
 });
@@ -911,39 +1125,392 @@ addEventListener("keydown", ({ key }) => {
 addEventListener("keyup", ({ key }) => {
     switch (key) {
         case "h":
-            // console.log("left");
             keys.h.pressed = false;
             break;
         case "j":
-            // console.log("down");
             keys.j.pressed = false;
             break;
         case "k":
-            // console.log("up");
             keys.k.pressed = false;
             break;
         case "l":
-            // console.log("right");
             keys.l.pressed = false;
             break;
         case " ":
-            // console.log("space");
             keys.space.pressed = false;
             if (player.powerUp === "MachineGun") return;
-            if (keys.space.pressed === false) {
-                projectiles.push(
-                    new Projectile({
-                        position: {
-                            x: player.position.x + player.width / 2,
-                            y: player.position.y,
-                        },
-                        velocity: {
-                            x: 0,
-                            y: -10,
-                        },
-                    })
-                );
-            }
+            projectiles.push(
+                new Projectile({
+                    position: {
+                        x: player.position.x + player.width / 2,
+                        y: player.position.y,
+                    },
+                    velocity: {
+                        x: 0,
+                        y: -10,
+                    },
+                })
+            );
+            playSound('shoot');
             break;
     }
 });
+
+// create command particles
+function createCommandParticles({ position, text }) {
+    playSound('command');
+    const particles = [];
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+    
+    for (let i = 0; i < 15; i++) {
+        particles.push(
+            new Particle({
+                position: {
+                    x: position.x + Math.random() * 20,
+                    y: position.y + Math.random() * 20
+                },
+                velocity: {
+                    x: (Math.random() - 0.5) * 4,
+                    y: (Math.random() - 0.5) * 4
+                },
+                radius: Math.random() * 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                fades: true
+            })
+        );
+    }
+    
+    // Create text label for the command
+    const commandLabel = document.createElement("label");
+    commandLabel.innerHTML = text;
+    commandLabel.style.position = "absolute";
+    commandLabel.style.color = "yellow";
+    commandLabel.style.top = position.y + "px";
+    commandLabel.style.left = position.x + "px";
+    commandLabel.style.userSelect = "none";
+    commandLabel.style.fontSize = "24px";
+    document.querySelector("#parentDiv").appendChild(commandLabel);
+
+    gsap.to(commandLabel, {
+        opacity: 0,
+        y: -30,
+        duration: 0.75,
+        onComplete: () => {
+            document.querySelector("#parentDiv").removeChild(commandLabel);
+        },
+    });
+
+    return particles;
+}
+
+let currentMenuIndex = 0;
+const menuItems = document.querySelectorAll('.menu-item');
+const instructionsContainer = document.querySelector('.instructions-container');
+const backButton = document.querySelector('.back-button');
+
+function updateMenuSelection() {
+    menuItems.forEach((item, index) => {
+        item.classList.toggle('selected', index === currentMenuIndex);
+    });
+}
+
+function handleMenuAction(action) {
+    console.log('Handling menu action:', action);
+    switch(action) {
+        case 'start':
+            console.log('Starting game');
+            document.querySelector('#start').style.display = 'none';
+            document.querySelector('#score').style.display = 'block';
+            audio.background.play();
+            init();
+            animate();
+            break;
+        case 'difficulty':
+            cycleDifficulty();
+            break;
+        case 'instructions':
+            console.log('Showing instructions');
+            instructionsContainer?.classList.remove('hidden');
+            break;
+    }
+}
+
+// Update handleKeyNavigation function
+function handleKeyNavigation(e) {
+    console.log('Key pressed:', e.key);
+    if (document.querySelector('#start').style.display === 'none') return;
+    
+    // Handle Escape key first, regardless of instructions visibility
+    if (e.key === 'Escape' || e.key === 'h') {
+        if (!instructionsContainer?.classList.contains('hidden')) {
+            instructionsContainer?.classList.add('hidden');
+            return;
+        }
+    }
+    
+    // Only handle menu navigation if instructions are hidden
+    if (instructionsContainer?.classList.contains('hidden')) {
+        switch(e.key) {
+            case 'ArrowUp':
+            case 'k':
+                console.log('Moving selection up');
+                currentMenuIndex = Math.max(0, currentMenuIndex - 1);
+                updateMenuSelection();
+                break;
+            case 'ArrowDown':
+            case 'j':
+                console.log('Moving selection down');
+                currentMenuIndex = Math.min(menuItems.length - 1, currentMenuIndex + 1);
+                updateMenuSelection();
+                break;
+            case 'Enter':
+            case 'l':
+                console.log('Enter pressed on item:', currentMenuIndex);
+                const selectedItem = menuItems[currentMenuIndex];
+                if (selectedItem) handleMenuAction(selectedItem.dataset.action);
+                break;
+        }
+    }
+}
+
+// Update initializeMenuHandlers to properly handle click events
+function initializeMenuHandlers() {
+    console.log('Initializing menu handlers');
+    console.log('Menu items found:', menuItems?.length);
+    
+    menuItems?.forEach((item, index) => {
+        console.log('Adding click handler to item:', index, item.dataset.action);
+        item.addEventListener('click', () => {
+            currentMenuIndex = index; // Update the current index when clicking
+            updateMenuSelection(); // Update the visual selection
+            console.log('Menu item clicked:', item.dataset.action);
+            handleMenuAction(item.dataset.action);
+        });
+    });
+
+    console.log('Back button found:', backButton !== null);
+    backButton?.addEventListener('click', () => {
+        console.log('Back button clicked');
+        instructionsContainer?.classList.add('hidden');
+    });
+
+    // Add keyboard navigation
+    document.addEventListener('keydown', handleKeyNavigation);
+}
+
+// Add restart functionality to the game over screen
+document.querySelector('#restart-btn')?.addEventListener('click', () => {
+    document.querySelector('#gameOver').style.display = 'none';
+    document.querySelector('#score').style.display = 'block';
+    init();
+    animate();
+});
+
+// Initialize menu handlers
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Starting menu initialization');
+    initializeMenuHandlers();
+});
+
+// Add difficulty settings
+const DIFFICULTY_SETTINGS = {
+    EASY: {
+        name: 'Easy',
+        spawnRate: 700,
+        invaderSpeed: 1,
+        projectileSpeed: 2,
+        powerUpFrequency: 500,
+        score_multiplier: 1,
+        highScore: localStorage.getItem('invaderVimHighScore_easy') || 0
+    },
+    NORMAL: {
+        name: 'Normal',
+        spawnRate: 500,
+        invaderSpeed: 1.25,
+        projectileSpeed: 3,
+        powerUpFrequency: 750,
+        score_multiplier: 2,
+        highScore: localStorage.getItem('invaderVimHighScore_normal') || 0
+    },
+    HARD: {
+        name: 'Hard',
+        spawnRate: 300,
+        invaderSpeed: 1.5,
+        projectileSpeed: 4,
+        powerUpFrequency: 1000,
+        score_multiplier: 3,
+        highScore: localStorage.getItem('invaderVimHighScore_hard') || 0
+    },
+    VIM_MASTER: {
+        name: 'Vim Master',
+        spawnRate: 200,
+        invaderSpeed: 4,
+        projectileSpeed: 8,
+        powerUpFrequency: 1500,
+        score_multiplier: 5,
+        highScore: localStorage.getItem('invaderVimHighScore_vim_master') || 0
+    }
+};
+
+let currentDifficulty = DIFFICULTY_SETTINGS.NORMAL;
+
+// Add power-up types
+const POWER_UPS = {
+    MACHINE_GUN: {
+        name: 'Machine Gun',
+        color: 'yellow',
+        duration: 2000,
+        effect: (player) => {
+            player.powerUp = 'MachineGun';
+        }
+    },
+    SHIELD: {
+        name: 'Shield',
+        color: 'blue',
+        duration: 5000,
+        effect: (player) => {
+            player.shielded = true;
+        }
+    },
+    SPEED_BOOST: {
+        name: 'Speed Boost',
+        color: 'green',
+        duration: 3000,
+        effect: (player) => {
+            player.speedMultiplier = 2;
+        }
+    }
+};
+
+// Add difficulty cycling
+function cycleDifficulty() {
+    const difficulties = Object.values(DIFFICULTY_SETTINGS);
+    const currentIndex = difficulties.findIndex(d => d.name === currentDifficulty.name);
+    const nextIndex = (currentIndex + 1) % difficulties.length;
+    currentDifficulty = difficulties[nextIndex];
+    document.querySelector('#difficulty-level').textContent = currentDifficulty.name;
+    
+    // Update high score display for the selected difficulty
+    highScore = currentDifficulty.highScore;
+    highScoreVal.innerHTML = highScore;
+
+    // Reset game with new difficulty if we're already playing
+    if (document.querySelector('#score').style.display === 'block') {
+        init();
+        animate();
+    }
+}
+
+// Update the game over screen handlers
+let gameOverMenuIndex = 0;
+const gameOverItems = document.querySelectorAll('#gameOver .menu-item');
+
+function updateGameOverSelection() {
+    gameOverItems.forEach((item, index) => {
+        item.classList.toggle('selected', index === gameOverMenuIndex);
+    });
+}
+
+function handleGameOverAction(action) {
+    switch(action) {
+        case 'restart':
+            document.querySelector('#gameOver').style.display = 'none';
+            document.querySelector('#score').style.display = 'block';
+            init();
+            animate();
+            break;
+        case 'menu':
+            document.querySelector('#gameOver').style.display = 'none';
+            document.querySelector('#start').style.display = 'flex';
+            document.querySelector('#score').style.display = 'none';
+            break;
+    }
+}
+
+// Add keyboard navigation for game over screen
+addEventListener('keydown', (e) => {
+    if (document.querySelector('#gameOver').style.display !== 'flex') return;
+
+    switch(e.key) {
+        case 'ArrowUp':
+        case 'k':
+            gameOverMenuIndex = Math.max(0, gameOverMenuIndex - 1);
+            updateGameOverSelection();
+            break;
+        case 'ArrowDown':
+        case 'j':
+            gameOverMenuIndex = Math.min(gameOverItems.length - 1, gameOverMenuIndex + 1);
+            updateGameOverSelection();
+            break;
+        case 'Enter':
+        case 'l':
+            const selectedItem = gameOverItems[gameOverMenuIndex];
+            if (selectedItem) handleGameOverAction(selectedItem.dataset.action);
+            break;
+    }
+});
+
+// Add click handlers for game over menu
+gameOverItems?.forEach(item => {
+    item.addEventListener('click', () => {
+        handleGameOverAction(item.dataset.action);
+    });
+});
+
+document.querySelector('#restart-btn')?.removeEventListener('click', () => {});
+
+// Add this function to handle level progression
+function checkLevelProgression() {
+    if (enemiesDefeatedInLevel >= enemiesRequiredForNextLevel) {
+        currentLevel++;
+        enemiesDefeatedInLevel = 0;
+        enemiesRequiredForNextLevel = Math.floor(enemiesRequiredForNextLevel * 1.5);
+        
+        document.querySelector('#levelVal').innerHTML = currentLevel;
+        showLevelUpMessage();
+        
+        // Increase game difficulty with each level
+        spawnBuffer = Math.max(100, spawnBuffer - 50);
+        
+        // Update the current difficulty settings
+        currentDifficulty = {
+            ...currentDifficulty,
+            spawnRate: Math.max(100, currentDifficulty.spawnRate - 50),
+            invaderSpeed: currentDifficulty.invaderSpeed * 1.1,
+            projectileSpeed: currentDifficulty.projectileSpeed * 1.1,
+            score_multiplier: currentDifficulty.score_multiplier + 0.5
+        };
+
+        // Update existing grids with new speed
+        grids.forEach(grid => {
+            grid.velocity.x = grid.velocity.x > 0 
+                ? currentDifficulty.invaderSpeed 
+                : -currentDifficulty.invaderSpeed;
+        });
+    }
+}
+
+// Add a level up message function
+function showLevelUpMessage() {
+    const levelUpLabel = document.createElement("div");
+    levelUpLabel.innerHTML = `Level ${currentLevel}!`;
+    levelUpLabel.style.position = "absolute";
+    levelUpLabel.style.color = "#00ff00";
+    levelUpLabel.style.top = "50%";
+    levelUpLabel.style.left = "50%";
+    levelUpLabel.style.transform = "translate(-50%, -50%)";
+    levelUpLabel.style.fontSize = "48px";
+    levelUpLabel.style.fontFamily = "monospace";
+    levelUpLabel.style.textShadow = "0 0 10px #00ff00";
+    levelUpLabel.style.zIndex = "1000";
+    document.querySelector("#parentDiv").appendChild(levelUpLabel);
+
+    gsap.to(levelUpLabel, {
+        opacity: 0,
+        y: -100,
+        duration: 1.5,
+        onComplete: () => {
+            document.querySelector("#parentDiv").removeChild(levelUpLabel);
+        },
+    });
+}
