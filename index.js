@@ -715,19 +715,22 @@ function animate() {
     }
 
     // spawn powerups
-    if (frames % currentDifficulty.powerUpFrequency === 0) {
-        powerUps.push(
-            new PowerUp({
-                position: {
-                    x: 0,
-                    y: Math.random() * 300 + 15,
-                },
-                velocity: {
-                    x: 5,
-                    y: 0,
-                },
-            })
-        );
+    if (frames % currentDifficulty.powerUpFrequency === 0 && powerUps.length < 2) {
+        // Add a random chance to spawn power-ups (50% chance)
+        if (Math.random() > 0.5) {
+            powerUps.push(
+                new PowerUp({
+                    position: {
+                        x: 0,
+                        y: Math.random() * 300 + 15,
+                    },
+                    velocity: {
+                        x: 5,
+                        y: 0,
+                    },
+                })
+            );
+        }
     }
 
     // spawn bombs
@@ -1319,7 +1322,7 @@ const DIFFICULTY_SETTINGS = {
         spawnRate: 700,
         invaderSpeed: 1,
         projectileSpeed: 2,
-        powerUpFrequency: 500,
+        powerUpFrequency: 1000,
         score_multiplier: 1,
         highScore: localStorage.getItem('invaderVimHighScore_easy') || 0
     },
@@ -1328,7 +1331,7 @@ const DIFFICULTY_SETTINGS = {
         spawnRate: 500,
         invaderSpeed: 1.25,
         projectileSpeed: 3,
-        powerUpFrequency: 750,
+        powerUpFrequency: 1500,
         score_multiplier: 2,
         highScore: localStorage.getItem('invaderVimHighScore_normal') || 0
     },
@@ -1337,7 +1340,7 @@ const DIFFICULTY_SETTINGS = {
         spawnRate: 300,
         invaderSpeed: 1.5,
         projectileSpeed: 4,
-        powerUpFrequency: 1000,
+        powerUpFrequency: 2000,
         score_multiplier: 3,
         highScore: localStorage.getItem('invaderVimHighScore_hard') || 0
     },
@@ -1346,7 +1349,7 @@ const DIFFICULTY_SETTINGS = {
         spawnRate: 200,
         invaderSpeed: 4,
         projectileSpeed: 8,
-        powerUpFrequency: 1500,
+        powerUpFrequency: 2500,
         score_multiplier: 5,
         highScore: localStorage.getItem('invaderVimHighScore_vim_master') || 0
     }
